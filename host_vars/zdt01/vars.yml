@@ -1,0 +1,3 @@
+environment_vars:
+ LIBPATH: "/lib:/usr/lib:/usr/lpp/IBM/zoautil/lib"
+ _BPXK_AUTOCVT: "ALL"

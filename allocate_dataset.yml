@@ -1,0 +1,59 @@
+- name: submit a zos command
+  hosts: all
+  environment: "{{ environment_vars }}"
+  gather_facts: no
+  
+  tasks:
+    - name: envvars
+      debug:
+        msg: "environemt_variables are {{ environment_vars }}"
+
+    - name: render and copy template
+      template:
+        src: "./template/alloc_template.jcl"
+        dest: "~/temp/alloc_test.jcl"      
+
+    - name: Detect character set for locale on target {{ inventory_hostname }}
+      command: locale -c charmap
+      register: locale_result
+
+    - name: display locale
+      debug:
+        msg: "locale_result: {{ locale_result }} / codepage: {{ locale_result.stdout }}"
+
+    - name: Set variable `target_charset` with target {{ inventory_hostname }} charset
+      set_fact:
+        target_charset: "{{ locale_result.stdout | default('IBM-1047') }}"
+
+    - name: display target_charset
+      debug:
+        msg: "{{ target_charset }}"
+
+    - name: Encode JCL from UTF-8 to target_charset
+      ibm.ibm_zos_core.zos_encode:
+        src: "~/temp/alloc_test.jcl"
+        dest: "~/temp/alloc_test_encoded.jcl"
+        from_encoding: UTF-8
+        to_encoding: "{{ target_charset }}"
+        backup: False
+      register: encode_result
+
+    - name: display encode result
+      debug:
+        msg: "{{ encode_result }}"
+
+    - name: submit JCL
+      ibm.ibm_zos_core.zos_job_submit:
+        src: "~/temp/alloc_test_encoded.jcl"
+        location: USS
+        wait: false
+      register: jcl_result
+      changed_when: False
+
+    - name: display results
+      debug:
+        msg: "Result: {{ jcl_result }}"
+
+
+
+

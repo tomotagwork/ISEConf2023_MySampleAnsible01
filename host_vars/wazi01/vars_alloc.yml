@@ -1,0 +1,5 @@
+datasetName: "ANSIBL1.DUMMY01"
+useVolser: True
+volser: "TEMP01"
+useStorageClass: True
+storageClass: "SCNOSMS"
